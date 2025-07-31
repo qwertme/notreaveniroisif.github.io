@@ -16,18 +16,27 @@ class Photo():
     
     @property
     def is_min(self):
-        return self.path.match('*.min.jpg')
+        return self.path.stem.endswith('.min') or self.path.match('*.min.*')
     
     @property
     def has_min(self):
         return self.min_path.exists()
     
     def format(self):
+        print(f"Processing image: {self.path}")
+        
         if self.is_min:
+            print(f"  Skipping .min image: {self.path}")
             return None
         
-        if not self.has_min:
+        # Only watermark and generate .min images if a .min image doesn't already exist
+        if self.has_min:
+            print(f"  Image already has .min version, skipping processing: {self.path}")
+            print(f"  Existing .min file: {self.min_path}")
+        else:
+            print(f"  No .min file found, processing image: {self.path}")
             if conf.SIGN_ORIGINAL:
+                print(f"  Watermarking original image: {self.path}")
                 signed_image = self.mark_image(self.pil_image, conf.fontsize)
                 self.save_image(signed_image, self.path)
             
@@ -36,12 +45,14 @@ class Photo():
             new_image_size = tuple([int(x*ratio) for x in self.size])
 
             if conf.SIGN_THUMBNAIL:
+                print(f"  Creating watermarked thumbnail: {self.min_path}")
                 if not conf.SIGN_ORIGINAL:
                     signed_image = self.mark_image(self.pil_image, conf.fontsize)
                 # ANTIALIAS is deprecated in newer Pillow versions, using Resampling.LANCZOS instead
                 signed_image.thumbnail(new_image_size, Image.Resampling.LANCZOS)
                 self.save_image(signed_image, self.min_path)
             else:
+                print(f"  Creating thumbnail without watermark: {self.min_path}")
                 min_image = self.pil_image.copy()
                 # ANTIALIAS is deprecated in newer Pillow versions, using Resampling.LANCZOS instead
                 min_image.thumbnail(new_image_size, Image.Resampling.LANCZOS)
