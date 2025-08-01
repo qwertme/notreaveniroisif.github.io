@@ -20,8 +20,19 @@ class Album():
             return getattr(entry.stat(), order_map[order_by])
         
         if type == 'album':
-            sort_by = _getmtime if conf.SORT_ALBUMS_BY_TIME else lambda x:x.name
-            return sorted(dirs, key=sort_by, reverse=conf.REVERSE_ALBUMS_ORDER)
+            # Use custom album order if specified in YAML configuration
+            if conf.ALBUM_ORDER:
+                def custom_sort_key(entry):
+                    try:
+                        return conf.ALBUM_ORDER.index(entry.name)
+                    except ValueError:
+                        # If album not in custom order, put it at the end
+                        return len(conf.ALBUM_ORDER)
+                return sorted(dirs, key=custom_sort_key)
+            else:
+                # Fall back to original time-based or filename sorting
+                sort_by = _getmtime if conf.SORT_ALBUMS_BY_TIME else lambda x:x.name
+                return sorted(dirs, key=sort_by, reverse=conf.REVERSE_ALBUMS_ORDER)
         if type == 'photo':
             sort_by = _getmtime if conf.SORT_PHOTOS_BY_TIME else lambda x:x.name
             return sorted(dirs, key=sort_by, reverse=conf.REVERSE_PHOTOS_ORDER)

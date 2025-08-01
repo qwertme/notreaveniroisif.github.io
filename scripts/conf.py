@@ -23,6 +23,7 @@ SIGN_ORIGINAL = True
 SORT_ALBUMS_BY_TIME = True
 REVERSE_ALBUMS_ORDER = True
 ORDER_ALBUMS_BY_LAST_DO = 'access'  # modify, create
+ALBUM_ORDER = []  # Custom album order from YAML
 
 SORT_PHOTOS_BY_TIME = False
 REVERSE_PHOTOS_ORDER = True
@@ -64,7 +65,8 @@ def merge_json(path, data):
     return data
 
 def write_json(path, data):
-    if KEEP_ORDER:
+    # Skip merge functionality when custom album order is specified
+    if KEEP_ORDER and not ALBUM_ORDER:
         data = merge_json(path, data)
     with open(path, 'w') as f:
         f.write(json.dumps(data, indent=2, separators=(',', ': ')))
@@ -90,6 +92,7 @@ with open(CONF_YAML_PATH, 'r') as config:
         SORT_ALBUMS_BY_TIME = album_conf.get('sort_by_time', SORT_ALBUMS_BY_TIME)
         REVERSE_ALBUMS_ORDER = album_conf.get('reverse', REVERSE_ALBUMS_ORDER)
         ORDER_ALBUMS_BY_LAST_DO = album_conf.get('order_by', ORDER_ALBUMS_BY_LAST_DO)
+        ALBUM_ORDER = album_conf.get('album_order', ALBUM_ORDER)
 
         SORT_PHOTOS_BY_TIME = photo_conf.get('sort_by_time', SORT_PHOTOS_BY_TIME)
         REVERSE_PHOTOS_ORDER = photo_conf.get('reverse', REVERSE_PHOTOS_ORDER)
